@@ -1,0 +1,44 @@
+#include<FFTtools.h>
+#include <fftw3.h>
+
+void realft(double *data, const int isign, int nsize){
+if(isign==1){
+   FFTWComplex *fftarray;
+   fftarray=FFTtools::doFFT(nsize,data);
+   format_transform(nsize, 1, (fftw_complex*)fftarray, data);
+   }
+else if(isign==-1){
+   fftw_complex *fftarray;
+   fftarray=(fftw_complex*) fftw_malloc(sizeof(fftw_complex) * (nsize/2+1));
+   format_transform(nsize,-1,fftarray, data);
+   double* invfft;
+   invfft=FFTtools::doInvFFT(nsize, (FFTWComplex*)fftarray);
+   for(int i=0;i<nsize;i++)
+      data[i]=invfft[i]*nsize/2;
+   free(fftarray);
+   }
+}
+
+void format_transform(int nsize, int trdir, fftw_complex *out, double *data){
+if(trdir==1){
+   for(int i=0;i<nsize;i++){
+      if(i%2)
+      data[i]=(-1)*out[i/2][i%2];
+      else
+      data[i]=out[i/2][i%2];
+   }
+   data[1]=out[nsize/2][0];
+}else if(trdir==-1){
+   for(int i=2;i<nsize;i++){
+      if(i%2)
+      out[i/2][i%2]=(-1)*data[i];
+      else {
+      out[i/2][i%2]=data[i];
+           }
+   }
+   out[0][0]=data[0];
+   out[0][1]=0;
+   out[nsize/2][0]=data[1];
+   out[nsize/2][1]=0;
+}
+}
